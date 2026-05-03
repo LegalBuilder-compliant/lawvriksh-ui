@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Litigation Matter Dashboard Prototype</title>
+  <style>
+    :root{--bg:#f5f6f8;--surface:#fff;--text:#1f2937;--muted:#6b7280;--line:#e5e7eb;--critical:#c62828;--warn:#d97706;--ready:#15803d;--brand:#d96b00;}
+    *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text)}
+    .app{display:grid;grid-template-columns:260px 1fr 330px;grid-template-rows:auto auto 1fr auto;min-height:100vh}
+    .header{grid-column:1/4;background:#eef1f5;border-bottom:1px solid var(--line);padding:18px 24px 12px}
+    .title{font-size:34px;font-weight:700}.sub{color:#64748b}
+    .health{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}.pill{padding:7px 10px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid var(--line);background:#fff}
+    .critical{background:#fdecec;color:var(--critical);border-color:#f1b5b5}.warn{background:#fff5e8;color:var(--warn);border-color:#f6d3a5}.ready{background:#e8f8ee;color:var(--ready);border-color:#b6e4c5}
+    .tabs{grid-column:1/4;display:flex;justify-content:space-between;padding:10px 24px;background:#f0f2f6;border-bottom:1px solid var(--line)}
+    .tabgrp{display:flex;gap:8px}.tab{padding:8px 14px;border-radius:8px;background:#fff;border:1px solid var(--line);font-weight:600;cursor:pointer}
+    .tab.active{background:var(--brand);color:#fff;border-color:var(--brand)}button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:10px 14px;font-weight:600;cursor:pointer}
+    .primary{background:var(--brand);border-color:var(--brand);color:#fff}.left,.main,.right{padding:16px}.left{border-right:1px solid var(--line);background:#fbfbfc}.right{border-left:1px solid var(--line);background:#fbfbfc}
+    .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px}h3{margin:8px 0 12px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#4b5563}
+    .list{display:grid;gap:8px}.row{display:flex;justify-content:space-between;font-size:14px}.muted{color:var(--muted)}
+    .alert{display:flex;justify-content:space-between;align-items:center;padding:12px;border-radius:10px;border:1px solid var(--line);margin-bottom:10px;background:#fff}.alert.critical{background:#fff1f1}.alert.warn{background:#fff8ef}
+    table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}th,td{padding:10px;border-bottom:1px solid var(--line);font-size:14px;text-align:left}
+    th{background:#f8fafc;color:#475569;font-size:12px;text-transform:uppercase}.chip{padding:4px 8px;border-radius:999px;font-size:12px;font-weight:600}.chip.c{background:#fdecec;color:var(--critical)}.chip.w{background:#fff5e8;color:var(--warn)}.chip.r{background:#e8f8ee;color:var(--ready)}
+    .sticky{grid-column:1/4;background:#fff;border-top:1px solid var(--line);padding:10px 24px;display:flex;gap:10px}.view{display:none}.view.active{display:block}
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="header">
+    <div class="title">Rahul Sharma Bail Matter</div>
+    <div class="sub">Session Court, Bhopal · Criminal Bail · Stage: Pre-hearing</div>
+    <div class="health"><span class="pill warn">Next Hearing: 28 Mar 2026 · 11:00</span><span class="pill warn">Filing Readiness: 68%</span><span class="pill critical">Critical Blockers: 1</span><span class="pill critical">Overdue Tasks: 2</span></div>
+  </header>
+
+  <section class="tabs">
+    <div class="tabgrp">
+      <button class="tab active" data-tab="overview">Overview</button>
+      <button class="tab" data-tab="drafts">Drafts</button>
+      <button class="tab" data-tab="documents">Documents</button>
+    </div>
+    <div class="tabgrp" id="actionButtons"><button class="primary">Resolve Blockers</button><button>Resume Active Draft</button><button>Upload Document</button></div>
+  </section>
+
+  <aside class="left" id="leftRail"></aside>
+  <main class="main" id="mainPanel"></main>
+  <aside class="right" id="rightPanel"></aside>
+
+  <div class="sticky" id="stickyBar"></div>
+</div>
+
+<script>
+const views = {
+  overview: {
+    left:`<div class="card"><h3>Saved Views</h3><div class="list"><div class="row"><span>Critical Today</span><b>5</b></div><div class="row"><span>Pre-Hearing (3d)</span><b>7</b></div><div class="row"><span>Waiting on Client</span><b>2</b></div><div class="row"><span>Unlinked Evidence</span><b>4</b></div></div></div>
+          <div class="card"><h3>Smart Filters</h3><div class="list"><div class="row"><span>Status</span><span class="muted">Action Required</span></div><div class="row"><span>Owner</span><span class="muted">Me / Junior / Clerk</span></div><div class="row"><span>Due</span><span class="muted">Today / 3 days / Week</span></div></div></div>`,
+    main:`<div class="view active"><div class="alert critical"><div><b>Missing certified FIR copy blocks filing</b><div class="muted">Owner: Clerk · Due today 4:00 PM</div></div><button class="primary">Open Task</button></div>
+          <div class="alert warn"><div><b>Draft v3.2 has 2 critical comments unresolved</b><div class="muted">Senior Counsel requested updates</div></div><button>Open Draft</button></div>
+          <table><thead><tr><th>Action Item</th><th>Priority</th><th>Evidence Links</th><th>Blocked By</th><th>Due/Trigger</th><th>Owner</th></tr></thead><tbody>
+          <tr><td>Review FIR inconsistencies</td><td><span class="chip c">High</span></td><td>3 docs</td><td>Certified FIR copy</td><td>T-3 Hearing</td><td>Prabhjot</td></tr>
+          <tr><td>Prepare annexure index</td><td><span class="chip w">Medium</span></td><td>4 docs</td><td>-</td><td>Today 6:00 PM</td><td>Junior</td></tr>
+          <tr><td>Call client for witness details</td><td><span class="chip w">Medium</span></td><td>1 doc</td><td>Client unavailable</td><td>Tomorrow</td><td>Clerk</td></tr>
+          <tr><td>Finalize prayer section</td><td><span class="chip r">Ready to Act</span></td><td>2 docs</td><td>-</td><td>Before filing</td><td>Prabhjot</td></tr>
+          </tbody></table></div>`,
+    right:`<div class="card"><h3>Filing Pack Checklist</h3><div class="row"><span>FIR Copy (Certified)</span><span class="chip c">Missing</span></div><div class="row"><span>Arrest Memo</span><span class="chip r">Present</span></div><div class="row"><span>Medical Report</span><span class="chip w">Verify</span></div><div class="row"><span>Affidavit</span><span class="chip w">Signature Pending</span></div></div>
+          <div class="card"><h3>Hearing Readiness</h3><div class="muted">28 Mar 2026 · 11:00 AM</div><div class="list" style="margin-top:8px"><div class="row"><span>Cause list checked</span><b>✓</b></div><div class="row"><span>Oral brief notes</span><b>✕</b></div><div class="row"><span>Authorities bundle</span><b>✕</b></div><div class="row"><span>Client confirmation</span><b>✓</b></div></div></div>`,
+    sticky:`<button class="primary">Create Task</button><button>Link to Draft</button><button>Mark Ready for Filing</button>`
+  },
+  drafts: {
+    left:`<div class="card"><h3>Draft Browser</h3><div class="list"><div class="row"><span>Anticipatory Bail v3.2</span><span class="chip w">In Progress</span></div><div class="row"><span>Revision Draft v2.1</span><span class="chip r">Ready</span></div></div></div>
+          <div class="card"><h3>Smart Outline</h3><div class="list"><div class="row"><span>1. Introduction</span><span>✓</span></div><div class="row"><span>2. Prosecution Argument</span><span class="muted">Pending</span></div></div></div>`,
+    main:`<div class="card"><h3>Active Draft</h3><div><b>Anticipatory Bail Application v3.2</b> <span class="chip w">In Progress</span></div><div class="muted">Last edited 20 mins ago · 2 critical comments</div></div>
+          <table><thead><tr><th>Section</th><th>Status</th><th>Linked Evidence</th><th>Reviewer</th></tr></thead><tbody>
+          <tr><td>Facts Background</td><td><span class="chip r">Complete</span></td><td>FIR, Arrest Memo</td><td>Senior Counsel</td></tr>
+          <tr><td>Defence Argument</td><td><span class="chip c">Action Required</span></td><td>Medical Report Missing Citation</td><td>Prabhjot</td></tr>
+          <tr><td>Prayer</td><td><span class="chip w">Under Review</span></td><td>Case Laws (2)</td><td>Junior</td></tr>
+          </tbody></table>`,
+    right:`<div class="card"><h3>Draft Readiness</h3><div class="row"><span>Sections Complete</span><b>75%</b></div><div class="row"><span>Evidence Linked</span><b>72%</b></div><div class="row"><span>Citations Verified</span><b>60%</b></div></div>
+           <div class="card"><h3>Draft Comments</h3><div class="row"><span>Critical</span><span class="chip c">2</span></div><div class="row"><span>Substantive</span><span class="chip w">4</span></div><div class="row"><span>Minor</span><span class="chip r">3</span></div></div>`,
+    sticky:`<button class="primary">Resume Drafting</button><button>Generate Hearing Notes</button><button>Send for Review</button>`
+  },
+  documents: {
+    left:`<div class="card"><h3>Document Groups</h3><div class="list"><div class="row"><span>Source Evidence</span><b>19</b></div><div class="row"><span>Court Orders</span><b>4</b></div><div class="row"><span>Client Docs</span><b>7</b></div></div></div>
+          <div class="card"><h3>Smart Filter</h3><div class="list"><div class="row"><span>Action Required</span><b>6</b></div><div class="row"><span>Unlinked to Draft</span><b>4</b></div></div></div>`,
+    main:`<table><thead><tr><th>Document</th><th>Category</th><th>Status</th><th>Linked To</th><th>Last Updated</th></tr></thead><tbody>
+          <tr><td>FIR_127_Report.pdf</td><td>Source Evidence</td><td><span class="chip r">Ready for Use</span></td><td>Draft v3.2</td><td>Today 11:24 AM</td></tr>
+          <tr><td>Medical_Report.pdf</td><td>Annexure</td><td><span class="chip w">Under Review</span></td><td>Not Linked</td><td>Today 10:52 AM</td></tr>
+          <tr><td>Arrest_Memo.pdf</td><td>Annexure</td><td><span class="chip c">Action Required</span></td><td>Draft v3.1</td><td>Yesterday</td></tr>
+          </tbody></table>`,
+    right:`<div class="card"><h3>Used in Draft & Arguments</h3><div class="list"><div class="row"><span>FIR_127_Report.pdf</span><span class="muted">Para 12</span></div><div class="row"><span>Arrest_Memo.pdf</span><span class="muted">Para 18</span></div></div></div>
+          <div class="card"><h3>Recent Evidence Events</h3><div class="list"><div class="row"><span>Facts extracted successfully</span><span class="muted">5m ago</span></div><div class="row"><span>Linked to bail draft</span><span class="muted">7m ago</span></div></div></div>`,
+    sticky:`<button class="primary">Upload Document</button><button>Link Missing Evidence</button><button>Generate Annexure Index</button>`
+  }
+};
+
+function render(tab){
+  const v=views[tab];
+  document.getElementById('leftRail').innerHTML=v.left;
+  document.getElementById('mainPanel').innerHTML=v.main;
+  document.getElementById('rightPanel').innerHTML=v.right;
+  document.getElementById('stickyBar').innerHTML=v.sticky;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
+}
+
+document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>render(btn.dataset.tab)));
+render('overview');
+</script>
+</body>
+</html>
